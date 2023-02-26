@@ -1,46 +1,68 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.dao.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmValidationService;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
 import java.util.List;
 
 @RestController
 @Slf4j
 @Validated
+@RequiredArgsConstructor
 public class FilmController {
-    private final FilmValidationService filmValidationService = new FilmValidationService();
-    private final InMemoryFilmStorage inMemoryFilmStorage = new InMemoryFilmStorage();
+    private final FilmService filmService;
+    private final UserController userController;
 
     @GetMapping("/films")
     public List<Film> getAllFilms() {
         log.info("GET request for /films path received");
-        return inMemoryFilmStorage.getAllFilms();
+        return filmService.getAllFilms();
     }
 
     @PostMapping("/films")
-    public Film addNewFilm (@RequestBody @Valid Film film) throws ValidationException {
+    public Film createFilm (@RequestBody @Valid Film film) {
         log.info("POST request for /films path received");
-        filmValidationService.validateFilm(film);
         log.debug("All fields for FILM validated successful");
-        film = inMemoryFilmStorage.addFilm(film);
-        log.debug("FILM successful added. ID=" + film.getId());
-        return film;
+        return filmService.addFilm(film);
     }
 
     @PutMapping("/films")
     public Film updateFilm (@RequestBody @Valid Film film) throws ValidationException {
         log.info("PUT request for /films path received");
-        filmValidationService.validateFilm(film);
+        filmService.updateFilm(film);
         log.debug("All fields for FILM validated successful");
-        film = inMemoryFilmStorage.updateFilm(film);
-        log.debug("FILM successful updated. ID=" + film.getId());
         return film;
+    }
+
+    @GetMapping("/films/{id}")
+    public Film findFilmByID(@PathVariable long id) throws ValidationException {
+        return filmService.findFilmByID(id);
+    }
+
+    @PutMapping("/films/{id}/like/{userId}")
+    public void addFilmLike(@PathVariable long id, @PathVariable long userId) throws ValidationException {
+        userController.findUserByID(userId);
+        filmService.addFilmLike(id, userId);
+    }
+
+    @DeleteMapping("/films/{id}/like/{userId}")
+    public void deleteFilmLike(@PathVariable long id, @PathVariable long userId) throws ValidationException {
+        userController.findUserByID(userId);
+        filmService.deleteFilmLike(id, userId);
+    }
+
+    @GetMapping("/films/popular")
+    public List<Film> findPopularFilms (@Positive @RequestParam (required = false) String count){
+        if (count == null) {
+            return filmService.findPopularFilms(0);
+        }
+        return filmService.findPopularFilms(Integer.parseInt(count));
     }
 }
