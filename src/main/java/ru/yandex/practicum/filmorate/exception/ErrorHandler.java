@@ -16,7 +16,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus (HttpStatus.NOT_FOUND)
-    public Map<String, String> cantFindByIDUserOrFilmInStorage(final ValidationException exception) {
+    public Map<String, String> cantFindByIdUserOrFilmInStorage(final ValidationException exception) {
         return Map.of("Error message", exception.getMessage());
     }
 

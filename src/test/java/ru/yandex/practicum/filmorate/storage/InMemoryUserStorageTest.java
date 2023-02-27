@@ -11,29 +11,25 @@ class InMemoryUserStorageTest {
     private final Map<Long, User> users = new TreeMap<>();
 
     public void addUser(User user) {
-        if(user.getFriends() == null) user.setFriends(new TreeSet<>());
         users.put(user.getId(), user);
     }
 
     public void updateUser(User updatedUser) throws ValidationException {
         long updatedUserID = updatedUser.getId();
-        checkUserInStorage(updatedUserID);
-        if(updatedUser.getFriends() == null) updatedUser.setFriends(users.get(updatedUserID).getFriends());
+        if (users.get(updatedUserID) == null) {
+            throw new ValidationException("Incorrect ID=" + updatedUserID + ". This user is not in database yet");
+        }
         users.replace(updatedUserID, updatedUser);
     }
 
     public User findUserByID(long id) throws ValidationException {
-        checkUserInStorage(id);
+        if (users.get(id) == null) {
+            throw new ValidationException("Incorrect ID=" + id + ". This user is not in database yet");
+        }
         return users.get(id);
     }
 
     public Map<Long, User> getAllUsers() {
         return users;
-    }
-
-    private void checkUserInStorage(long id) throws ValidationException {
-        if (users.get(id) == null) {
-            throw new ValidationException("Incorrect ID=" + id + ". This user is not in database yet");
-        }
     }
 }

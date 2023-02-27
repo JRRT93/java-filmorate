@@ -15,30 +15,24 @@ public class InMemoryFilmStorageTest implements FIlmStorage {
     private final Map<Long, Film> films = new TreeMap<>();
 
     public void addFilm(Film film) {
-        if(film.getLikes() == null) film.setLikes(new TreeSet<>());
-        log.debug("LIKES field inizialized");
         films.put(film.getId(), film);
     }
 
     public void updateFilm(Film film) throws ValidationException {
-        checkFilmInStorage(film.getId());
-        if(film.getLikes() == null) film.setLikes(new TreeSet<>());
-        log.debug("LIKES field inizialized");
+        if (films.get(film.getId()) == null) {
+            throw new ValidationException("Incorrect ID " + film.getId() + ". This film is not in database yet");
+        }
         films.replace(film.getId(), film);
     }
 
-    public Film findFilmByID(long id) throws ValidationException {
-        checkFilmInStorage(id);
+    public Film findFilmById(long id) throws ValidationException {
+        if (films.get(id) == null) {
+            throw new ValidationException("Incorrect ID " + id + ". This film is not in database yet");
+        }
         return films.get(id);
     }
 
     public List<Film> getAllFilms() {
         return new ArrayList<>(films.values());
-    }
-
-    private void checkFilmInStorage(long id) throws ValidationException {
-        if (films.get(id) == null) {
-            throw new ValidationException("Incorrect ID " + id + ". This film is not in database yet");
-        }
     }
 }

@@ -13,7 +13,6 @@ import java.util.Set;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class Film {
-    final static LocalDate ALLOWED_EARLIER_REALISE_DATE = LocalDate.of(1895, 12, 28);
     private Long id;
     @NotBlank
     private String name;

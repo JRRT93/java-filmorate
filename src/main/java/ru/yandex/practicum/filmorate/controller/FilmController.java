@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Positive;
 import java.util.List;
 
 @RestController
@@ -29,40 +28,45 @@ public class FilmController {
     @PostMapping("/films")
     public Film createFilm (@RequestBody @Valid Film film) {
         log.info("POST request for /films path received");
-        log.debug("All fields for FILM validated successful");
+        log.debug("FILM required fields for autovalidation validated successful");
         return filmService.addFilm(film);
     }
 
     @PutMapping("/films")
     public Film updateFilm (@RequestBody @Valid Film film) throws ValidationException {
         log.info("PUT request for /films path received");
+        log.debug("FILM required fields for autovalidation validated successful");
         filmService.updateFilm(film);
-        log.debug("All fields for FILM validated successful");
         return film;
     }
 
     @GetMapping("/films/{id}")
-    public Film findFilmByID(@PathVariable long id) throws ValidationException {
-        return filmService.findFilmByID(id);
+    public Film findFilmById(@PathVariable long id) throws ValidationException {
+        log.info("GET request for /films/" + id + " path received");
+        return filmService.findFilmById(id);
     }
 
     @PutMapping("/films/{id}/like/{userId}")
     public void addFilmLike(@PathVariable long id, @PathVariable long userId) throws ValidationException {
-        userController.findUserByID(userId);
+        log.info("PUT request for /films/" + id + "/like/" + userId + " path received");
+        userController.findUserById(userId);
         filmService.addFilmLike(id, userId);
     }
 
     @DeleteMapping("/films/{id}/like/{userId}")
     public void deleteFilmLike(@PathVariable long id, @PathVariable long userId) throws ValidationException {
-        userController.findUserByID(userId);
+        log.info("DEL request for /films/" + id + "/like/" + userId + " path received");
+        userController.findUserById(userId);
         filmService.deleteFilmLike(id, userId);
     }
 
     @GetMapping("/films/popular")
-    public List<Film> findPopularFilms (@Positive @RequestParam (required = false) String count){
+    public List<Film> findPopularFilms (@RequestParam (required = false) String count){
         if (count == null) {
+            log.info("GET request for /films/popular path received");
             return filmService.findPopularFilms(0);
         }
+        log.info("GET request for /films/popular?count=" + count + " path received");
         return filmService.findPopularFilms(Integer.parseInt(count));
     }
 }

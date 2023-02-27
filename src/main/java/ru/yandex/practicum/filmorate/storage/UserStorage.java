@@ -8,6 +8,6 @@ import java.util.Map;
 public interface UserStorage {
     void addUser(User user);
     void updateUser(User user) throws ValidationException;
-    User findUserByID(long id) throws ValidationException;
+    User findUserById(long id) throws ValidationException;
     Map<Long, User> getAllUsers();
 }

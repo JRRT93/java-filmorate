@@ -9,6 +9,5 @@ public interface FIlmStorage {
     void addFilm(Film film);
     void updateFilm(Film film) throws ValidationException;
     List<Film> getAllFilms();
-    Film findFilmByID(long id) throws ValidationException;
-
+    Film findFilmById(long id) throws ValidationException;
 }
