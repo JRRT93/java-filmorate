@@ -1,9 +1,14 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import ru.yandex.practicum.filmorate.annotation.NotContainSpaces;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Past;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -23,4 +28,7 @@ public class User {
     @Past
     private LocalDate birthday;
     private Set<Long> friends;
+    private Set<Long> incomingFriendshipRequests;
+    private Set<Long> outgoingFriendshipRequests;
+    private boolean isFriend;
 }

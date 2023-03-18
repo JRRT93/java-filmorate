@@ -23,4 +23,6 @@ public class Film {
     @ReleaseDateLimit
     private LocalDate releaseDate;
     private Set<Long> likes;
+    private Set<String> genres;
+    private String ratingMPA;
 }

@@ -20,7 +20,7 @@ user_friends. Также отдельные таблицы для вариант
 ~~~ sql
 SELECT one.friend_id 
 FROM user_friends AS two
-INNER JOIM (SELECT friend_id 
+INNER JOIN (SELECT friend_id 
 		FROM user_friends
 		WHERE user_id = 1) AS one ON one.friend_id = two.friend_id
 WHERE user_id = 2
