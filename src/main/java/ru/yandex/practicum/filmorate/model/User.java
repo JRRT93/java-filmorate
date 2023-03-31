@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.*;
-import ru.yandex.practicum.filmorate.model.dao.annotation.NotContainSpaces;
+import ru.yandex.practicum.filmorate.annotation.NotContainSpaces;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;

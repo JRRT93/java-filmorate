@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.model.dao.annotation;
+package ru.yandex.practicum.filmorate.annotation;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;

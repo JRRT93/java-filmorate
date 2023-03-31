@@ -1,8 +1,8 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.*;
-import ru.yandex.practicum.filmorate.model.dao.annotation.LengthLimit;
-import ru.yandex.practicum.filmorate.model.dao.annotation.ReleaseDateLimit;
+import ru.yandex.practicum.filmorate.annotation.LengthLimit;
+import ru.yandex.practicum.filmorate.annotation.ReleaseDateLimit;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.model.dao;
+package ru.yandex.practicum.filmorate.dao;
 
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;

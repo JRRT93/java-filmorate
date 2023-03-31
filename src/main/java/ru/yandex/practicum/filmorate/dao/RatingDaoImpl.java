@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.model.dao;
+package ru.yandex.practicum.filmorate.dao;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
