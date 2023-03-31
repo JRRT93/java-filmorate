@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.*;
-import ru.yandex.practicum.filmorate.annotation.NotContainSpaces;
+import ru.yandex.practicum.filmorate.model.dao.annotation.NotContainSpaces;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Past;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -11,6 +13,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @EqualsAndHashCode
+@Builder
 public class User {
     private Long id;
     @NotBlank

@@ -25,14 +25,14 @@ public class UserController {
     }
 
     @PostMapping("/users")
-    public User createUser (@RequestBody @Valid User user) {
+    public User createUser(@RequestBody @Valid User user) {
         log.info("POST request for /users path received");
         log.debug("USER required fields for autovalidation validated successful");
         return userService.addNewUser(user);
     }
 
     @PutMapping("/users")
-    public User updateUser (@RequestBody @Valid User user) throws ValidationException {
+    public User updateUser(@RequestBody @Valid User user) throws ValidationException {
         log.info("PUT request for /users path received");
         log.debug("USER required fields for autovalidation validated successful");
         userService.updateUser(user);
@@ -64,7 +64,7 @@ public class UserController {
     }
 
     @GetMapping(value = "/users/{id}/friends/common/{otherId}")
-    public List<User> findUserCommonFriends(@PathVariable long id, @PathVariable (name = "otherId") long friendId)
+    public List<User> findUserCommonFriends(@PathVariable long id, @PathVariable(name = "otherId") long friendId)
             throws ValidationException {
         log.info("GET request for /users/" + id + "/friends/common" + friendId + " path received");
         return userService.findUsersCommonFriends(id, friendId);

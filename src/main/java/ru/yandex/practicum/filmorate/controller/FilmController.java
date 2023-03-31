@@ -6,6 +6,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
@@ -26,14 +28,14 @@ public class FilmController {
     }
 
     @PostMapping("/films")
-    public Film createFilm (@RequestBody @Valid Film film) {
+    public Film createFilm(@RequestBody @Valid Film film) {
         log.info("POST request for /films path received");
         log.debug("FILM required fields for autovalidation validated successful");
         return filmService.addFilm(film);
     }
 
     @PutMapping("/films")
-    public Film updateFilm (@RequestBody @Valid Film film) throws ValidationException {
+    public Film updateFilm(@RequestBody @Valid Film film) throws ValidationException {
         log.info("PUT request for /films path received");
         log.debug("FILM required fields for autovalidation validated successful");
         filmService.updateFilm(film);
@@ -61,12 +63,36 @@ public class FilmController {
     }
 
     @GetMapping("/films/popular")
-    public List<Film> findPopularFilms (@RequestParam (required = false) String count){
+    public List<Film> findPopularFilms(@RequestParam(required = false) String count) {
         if (count == null) {
             log.info("GET request for /films/popular path received");
             return filmService.findPopularFilms(0);
         }
         log.info("GET request for /films/popular?count=" + count + " path received");
         return filmService.findPopularFilms(Integer.parseInt(count));
+    }
+
+    @GetMapping("/genres")
+    public List<Genre> getAllGenres() {
+        log.info("GET request for /genres path received");
+        return filmService.getAllGenres();
+    }
+
+    @GetMapping("/genres/{id}")
+    public Genre findGenreById(@PathVariable long id) throws ValidationException {
+        log.info("GET request for /genres/" + id + " path received");
+        return filmService.findGenreById(id);
+    }
+
+    @GetMapping("/mpa")
+    public List<Rating> getAllRatings() {
+        log.info("GET request for /mpa path received");
+        return filmService.getAllRatings();
+    }
+
+    @GetMapping("/mpa/{id}")
+    public Rating findRatingById(@PathVariable long id) throws ValidationException {
+        log.info("GET request for /mpa/" + id + " path received");
+        return filmService.findRatingById(id);
     }
 }

@@ -1,16 +1,16 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.model.dao;
 
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
 
-public interface UserStorage {
-    Long addUser(User user);
+public interface UserDao {
+    Long createUser(User user);
 
-    boolean updateUser(User user) throws ValidationException;
+    boolean updateUser(User user);
 
     User findUserById(long id) throws ValidationException;
 
-    List<User> getAllUsers();
+    List<User> findAllUsers();
 }

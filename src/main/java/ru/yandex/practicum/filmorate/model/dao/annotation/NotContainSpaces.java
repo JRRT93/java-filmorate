@@ -1,4 +1,5 @@
-package ru.yandex.practicum.filmorate.annotation;
+package ru.yandex.practicum.filmorate.model.dao.annotation;
+
 import javax.validation.Constraint;
 import javax.validation.Payload;
 import java.lang.annotation.Documented;
@@ -9,10 +10,11 @@ import static java.lang.annotation.ElementType.FIELD;
 
 @Target({ FIELD })
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = ReleaseDateLimitValidator.class)
+@Constraint(validatedBy = NotContainSpacesValidator.class)
 @Documented
-public @interface ReleaseDateLimit {
-    String message() default "Incorrect film release date: date should be after 1895-12-28";
+
+public @interface NotContainSpaces {
+    String message() default "{NotContainSpaces.invalid}";
 
     Class<?>[] groups() default { };
 
