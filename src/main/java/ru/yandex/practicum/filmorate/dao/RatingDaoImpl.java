@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dao;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -8,6 +9,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Rating;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -23,16 +25,12 @@ public class RatingDaoImpl implements RatingDao {
     }
 
     @Override
-    public Rating findRatingById(long id) throws ValidationException {
+    public Optional<Rating> findRatingById(long id) {
         String sqlQuery = "SELECT * FROM ratings WHERE rating_id = ?;";
-        Rating rating;
         try {
-            rating = jdbcTemplate.queryForObject(sqlQuery, rowMapper, id);
-        } catch (Exception e) {
-            rating = null;
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sqlQuery, rowMapper, id));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
         }
-        if (rating == null)
-            throw new ValidationException("Incorrect ID=" + id + ". This rating is not in database yet");
-        return rating;
     }
 }

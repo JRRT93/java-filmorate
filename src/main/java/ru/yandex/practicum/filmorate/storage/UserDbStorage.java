@@ -27,7 +27,8 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User findUserById(long id) throws ValidationException {
-        return userDao.findUserById(id);
+        return userDao.findUserById(id).orElseThrow(() ->
+                new ValidationException("Incorrect ID=" + id + ". This user is not in database yet"));
     }
 
     @Override

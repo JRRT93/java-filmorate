@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dao;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -11,9 +12,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +24,7 @@ public class UserDaoImpl implements UserDao {
             .login(rs.getString("login"))
             .name(rs.getString("name"))
             .birthday(rs.getDate("birthdate").toLocalDate())
-            .friends(null)
+            .friends(new TreeSet<>())
             .build();
 
     @Override
@@ -55,17 +54,15 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User findUserById(long id) throws ValidationException {
+    public Optional<User> findUserById(long id) throws ValidationException {
         String sqlQuery = "SELECT * FROM users WHERE user_id = ?;";
-        User user;
         try {
-            user = jdbcTemplate.queryForObject(sqlQuery, rowMapper, id);
-        } catch (Exception e) {
-            user = null;
+            User user = jdbcTemplate.queryForObject(sqlQuery, rowMapper, id);
+            user.setFriends(new HashSet<>(extractUsersFriends(user)));
+            return Optional.of(user);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
         }
-        if (user == null) throw new ValidationException("Incorrect ID=" + id + ". This user is not in database yet");
-        user.setFriends(new HashSet<>(extractUsersFriends(user)));
-        return user;
     }
 
     @Override

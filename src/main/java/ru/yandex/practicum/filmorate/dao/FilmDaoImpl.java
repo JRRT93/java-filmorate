@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dao;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -13,10 +14,7 @@ import ru.yandex.practicum.filmorate.model.Rating;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -28,9 +26,9 @@ public class FilmDaoImpl implements FilmDao {
             .description(rs.getString("description"))
             .duration(rs.getInt("duration"))
             .releaseDate(rs.getDate("release_date").toLocalDate())
-            .likes(null)
+            .likes(new TreeSet<>())
             .mpa(null)
-            .genres(null)
+            .genres(new TreeSet<>())
             .build();
 
     @Override
@@ -69,19 +67,17 @@ public class FilmDaoImpl implements FilmDao {
     }
 
     @Override
-    public Film findFilmById(long id) throws ValidationException {
+    public Optional<Film> findFilmById(long id) throws ValidationException {
         String sqlQuery = "SELECT * FROM films WHERE film_id = ?;";
-        Film film;
         try {
-            film = jdbcTemplate.queryForObject(sqlQuery, rowMapper, id);
-        } catch (Exception e) {
-            film = null;
+            Film film = jdbcTemplate.queryForObject(sqlQuery, rowMapper, id);
+            film.setGenres(new TreeSet<>(extractGenres(film)));
+            film.setLikes(new HashSet<>(extractLikes(film)));
+            film.setMpa(extractRating(film));
+            return Optional.of(film);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
         }
-        if (film == null) throw new ValidationException("Incorrect ID=" + id + ". This film is not in database yet");
-        film.setGenres(new TreeSet<>(extractGenres(film)));
-        film.setLikes(new HashSet<>(extractLikes(film)));
-        film.setMpa(extractRating(film));
-        return film;
     }
 
     @Override
@@ -125,18 +121,21 @@ public class FilmDaoImpl implements FilmDao {
     }
 
     private List<Genre> extractGenres(Film film) {
-        String sqlQuery = "SELECT  f.genre_id, g.name\n" +
-                "FROM (SELECT genre_id FROM film_genre WHERE film_id = ?) as f\n" +
-                "INNER JOIN genres AS g ON f.genre_id = g.genre_id\n" +
-                "ORDER BY f.genre_id ASC;";
+        String sqlQuery = "SELECT  fg.genre_id, g.name\n" +
+                "FROM film_genre as fg\n" +
+                "INNER JOIN genres AS g ON fg.genre_id = g.genre_id\n" +
+                "WHERE fg.film_id = ?" +
+                "ORDER BY fg.genre_id ASC;";
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> new Genre(rs.getLong("genre_id"),
                 rs.getString("name")), film.getId());
     }
 
     private Rating extractRating(Film film) {
-        String sqlQuery = "SELECT rating_id, name FROM ratings " +
-                "WHERE rating_id = (SELECT rating_mpa FROM films WHERE film_id = ?);";
-        return jdbcTemplate.queryForObject(sqlQuery, (rs, rowNum) -> new Rating(rs.getLong("rating_id"),
+        String sqlQuery = "SELECT f.rating_mpa, r.name\n" +
+                "FROM films AS f\n" +
+                "INNER JOIN ratings AS r ON f.rating_mpa = r.rating_id\n" +
+                "WHERE f.film_id = ?;";
+        return jdbcTemplate.queryForObject(sqlQuery, (rs, rowNum) -> new Rating(rs.getLong("rating_mpa"),
                 rs.getString("name")), film.getId());
     }
 
