@@ -11,7 +11,10 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.FIlmStorage;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.TreeSet;
 
 @Slf4j
 @Service
@@ -94,7 +97,8 @@ public class FilmService {
     }
 
     public Genre findGenreById(long id) throws ValidationException {
-        return genreDao.findGenreById(id);
+        return genreDao.findGenreById(id).orElseThrow(() ->
+                new ValidationException("Incorrect ID=" + id + ". This genre is not in database yet"));
     }
 
     public List<Rating> getAllRatings() {
@@ -102,6 +106,7 @@ public class FilmService {
     }
 
     public Rating findRatingById(long id) throws ValidationException {
-        return ratingDao.findRatingById(id);
+        return ratingDao.findRatingById(id).orElseThrow(() ->
+                new ValidationException("Incorrect ID=" + id + ". This rating is not in database yet"));
     }
 }

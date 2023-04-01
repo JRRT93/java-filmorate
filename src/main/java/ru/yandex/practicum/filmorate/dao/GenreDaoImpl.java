@@ -1,13 +1,14 @@
 package ru.yandex.practicum.filmorate.dao;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -23,15 +24,12 @@ public class GenreDaoImpl implements GenreDao {
     }
 
     @Override
-    public Genre findGenreById(long id) throws ValidationException {
+    public Optional<Genre> findGenreById(long id) {
         String sqlQuery = "SELECT * FROM genres WHERE genre_id = ?;";
-        Genre genre;
         try {
-            genre = jdbcTemplate.queryForObject(sqlQuery, rowMapper, id);
-        } catch (Exception e) {
-            genre = null;
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sqlQuery, rowMapper, id));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
         }
-        if (genre == null) throw new ValidationException("Incorrect ID=" + id + ". This genre is not in database yet");
-        return genre;
     }
 }

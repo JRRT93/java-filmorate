@@ -386,7 +386,8 @@ class FilmServiceTest {
     }
 
     public Genre findGenreById(long id) throws ValidationException {
-        return genreDao.findGenreById(id);
+        return genreDao.findGenreById(id).orElseThrow(() ->
+                new ValidationException("Incorrect ID=" + id + ". This genre is not in database yet"));
     }
 
     public List<Rating> getAllRatings() {
@@ -394,6 +395,7 @@ class FilmServiceTest {
     }
 
     public Rating findRatingById(long id) throws ValidationException {
-        return ratingDao.findRatingById(id);
+        return ratingDao.findRatingById(id).orElseThrow(() ->
+                new ValidationException("Incorrect ID=" + id + ". This rating is not in database yet"));
     }
 }

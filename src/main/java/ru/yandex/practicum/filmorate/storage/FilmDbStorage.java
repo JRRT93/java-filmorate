@@ -27,7 +27,8 @@ public class FilmDbStorage implements FIlmStorage {
 
     @Override
     public Film findFilmById(long id) throws ValidationException {
-        return filmDao.findFilmById(id);
+        return filmDao.findFilmById(id).orElseThrow(
+                () -> new ValidationException("Incorrect ID=" + id + ". This film is not in database yet"));
     }
 
     @Override
