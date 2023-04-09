@@ -5,23 +5,31 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @NoArgsConstructor
 @Component
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new TreeMap<>();
+    private long id = 1;
 
-    public void addUser(User user) {
+    public Long addUser(User user) {
+        user.setId(id);
+        id++;
         users.put(user.getId(), user);
+        return user.getId();
     }
 
-    public void updateUser(User updatedUser) throws ValidationException {
+    public boolean updateUser(User updatedUser) throws ValidationException {
         long updatedUserID = updatedUser.getId();
-        if (users.get(updatedUserID) == null) {
+        User oldValueUser = users.get(updatedUserID);
+        if (oldValueUser == null) {
             throw new ValidationException("Incorrect ID=" + updatedUserID + ". This user is not in database yet");
         }
-        users.replace(updatedUserID, updatedUser);
+        return users.replace(updatedUserID, oldValueUser, updatedUser);
     }
 
     public User findUserById(long id) throws ValidationException {
@@ -31,7 +39,7 @@ public class InMemoryUserStorage implements UserStorage {
         return users.get(id);
     }
 
-    public Map<Long, User> getAllUsers() {
-        return users;
+    public List<User> getAllUsers() {
+        return new ArrayList<>(users.values());
     }
 }

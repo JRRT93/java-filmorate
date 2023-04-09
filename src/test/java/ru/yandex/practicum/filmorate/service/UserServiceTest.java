@@ -12,7 +12,6 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,9 +23,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @Slf4j
 class UserServiceTest {
     private final UserStorage userStorage = new InMemoryUserStorage();
-    private long id = 1;
     User user1;
     private static final Validator validator;
+
     static {
         ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
         validator = validatorFactory.usingContext().getValidator();
@@ -90,30 +89,30 @@ class UserServiceTest {
         this.addNewUser(user1);
         assertNotNull(this.findUserById(1).getId());
         assertNotNull(this.findUserById(1).getFriends());
-        assertEquals("Van", this.findUserById(1).getName(),"Name изменилось");
-        assertEquals("GymBoss", this.findUserById(1).getLogin(),"Login изменилось");
-        assertEquals("zahodim@yandex.ru", this.findUserById(1).getEmail(),"Email изменилось");
+        assertEquals("Van", this.findUserById(1).getName(), "Name изменилось");
+        assertEquals("GymBoss", this.findUserById(1).getLogin(), "Login изменилось");
+        assertEquals("zahodim@yandex.ru", this.findUserById(1).getEmail(), "Email изменилось");
         assertEquals(LocalDate.of(1972, 10, 24), this.findUserById(1).getBirthday(),
                 "Birthday изменилась");
     }
 
     @Test
-    void updateUserShouldUpdateAllInitializedFields () throws ValidationException {
+    void updateUserShouldUpdateAllInitializedFields() throws ValidationException {
         User updatedUser = new User((long) 1, "svorachivaemsya@yandex.ru", "Billy", "Herrington",
                 LocalDate.of(1942, 10, 24), null);
         addNewUser(user1);
         updateUser(updatedUser);
         assertNotNull(this.findUserById(1).getFriends());
-        assertEquals(1,this.findUserById(1).getId(), "ID изменилось");
-        assertEquals("Herrington", this.findUserById(1).getName(),"Name не изменилось");
-        assertEquals("Billy", this.findUserById(1).getLogin(),"Login не изменилось");
-        assertEquals("svorachivaemsya@yandex.ru", this.findUserById(1).getEmail(),"Email не изменилось");
+        assertEquals(1, this.findUserById(1).getId(), "ID изменилось");
+        assertEquals("Herrington", this.findUserById(1).getName(), "Name не изменилось");
+        assertEquals("Billy", this.findUserById(1).getLogin(), "Login не изменилось");
+        assertEquals("svorachivaemsya@yandex.ru", this.findUserById(1).getEmail(), "Email не изменилось");
         assertEquals(LocalDate.of(1942, 10, 24), this.findUserById(1).getBirthday(),
                 "Birthday не изменилась");
     }
 
     @Test
-    void updateFilmShouldThrowExpDueInvalidID () {
+    void updateFilmShouldThrowExpDueInvalidID() {
         User updatedUser = new User((long) 999, "svorachivaemsya@yandex.ru", "Billy", "Herrington",
                 LocalDate.of(1942, 10, 24), null);
         addNewUser(user1);
@@ -121,14 +120,14 @@ class UserServiceTest {
     }
 
     @Test
-    void updateFilmShouldKeepInitialized () throws ValidationException {
+    void updateFilmShouldKeepInitialized() throws ValidationException {
         Set<Long> testSet = new TreeSet<>();
-        testSet.add((long)14);
-        User updatedUser =  new User((long) 1, "svorachivaemsya@yandex.ru", "Billy", "Herrington",
+        testSet.add((long) 14);
+        User updatedUser = new User((long) 1, "svorachivaemsya@yandex.ru", "Billy", "Herrington",
                 LocalDate.of(1942, 10, 24), testSet);
         addNewUser(user1);
         updateUser(updatedUser);
-        assertEquals(testSet,this.findUserById(1).getFriends(), "FRIENDS изменилось");
+        assertEquals(testSet, this.findUserById(1).getFriends(), "FRIENDS изменилось");
     }
 
     @Test
@@ -145,7 +144,7 @@ class UserServiceTest {
                 LocalDate.of(1993, 10, 24), null);
         addNewUser(user1);
         addNewUser(user2);
-        addUserFriend(1,2);
+        addUserFriend(1, 2);
         assertEquals(1, this.findUserFriends(user1.getId()).size(), "FRIENDS изменилось");
     }
 
@@ -158,7 +157,7 @@ class UserServiceTest {
         addNewUser(user1);
         addNewUser(user2);
         addNewUser(user3);
-        addUserFriend(2,3);
+        addUserFriend(2, 3);
         assertEquals(0, this.findUsersCommonFriends(user1.getId(), user2.getId()).size(), "FRIENDS изменилось");
     }
 
@@ -171,56 +170,56 @@ class UserServiceTest {
         addNewUser(user1);
         addNewUser(user2);
         addNewUser(user3);
-        addUserFriend(1,2);
-        addUserFriend(1,3);
-        addUserFriend(2,3);
+        addUserFriend(1, 2);
+        addUserFriend(1, 3);
+        addUserFriend(2, 3);
         assertEquals(1, this.findUsersCommonFriends(user1.getId(), user2.getId()).size(), "FRIENDS изменилось");
     }
 
     public User addNewUser(User user) {
         checkUsersName(user);
-        user.setId(id);
-        id++;
-        if(user.getFriends() == null) user.setFriends(new TreeSet<>());
+        if (user.getFriends() == null) user.setFriends(new TreeSet<>());
         log.debug("FRIENDS field initialized");
-        userStorage.addUser(user);
+        user.setId(userStorage.addUser(user));
         log.debug("USER successful added. ID=" + user.getId());
         return user;
     }
 
     public User updateUser(User user) throws ValidationException {
+        userStorage.findUserById(user.getId());
         checkUsersName(user);
-        if(user.getFriends() == null) user.setFriends(new TreeSet<>());
+        if (user.getFriends() == null) user.setFriends(new TreeSet<>());
         log.debug("FRIENDS field initialized");
-        userStorage.updateUser(user);
-        log.debug("USER successful updated. ID=" + user.getId());
+        if (userStorage.updateUser(user)) {
+            log.debug("USER successful updated. ID=" + user.getId());
+        }
         return user;
     }
 
     public List<User> getAllUsers() {
-        return new ArrayList<>(userStorage.getAllUsers().values());
+        return userStorage.getAllUsers();
     }
 
     public User findUserById(long id) throws ValidationException {
         return userStorage.findUserById(id);
     }
 
-    public void addUserFriend (long id, long friendId) throws ValidationException {
+    public void addUserFriend(long id, long friendId) throws ValidationException {
         User user = userStorage.findUserById(id);
-        User friend = userStorage.findUserById(friendId);
+        userStorage.findUserById(friendId);
         user.getFriends().add(friendId);
-        log.debug("FRIEND ID=" + friendId + " added to User ID=" + id + " friends list");
-        friend.getFriends().add(id);
-        log.debug("FRIEND ID=" + id + " added to User ID=" + friend + " friends list");
+        if (userStorage.updateUser(user)) {
+            log.debug("FRIEND ID=" + friendId + " added from User ID=" + id + " friends list");
+        }
     }
 
     public void deleteUserFriend(Long id, Long friendId) throws ValidationException {
         User user = userStorage.findUserById(id);
-        User friend = userStorage.findUserById(friendId);
+        userStorage.findUserById(friendId);
         user.getFriends().remove(friendId);
-        log.debug("FRIEND ID=" + friendId + " removed from User ID=" + id + " friends list");
-        friend.getFriends().remove(id);
-        log.debug("FRIEND ID=" + id + " removed from User ID=" + friend + " friends list");
+        if (userStorage.updateUser(user)) {
+            log.debug("FRIEND ID=" + friendId + " removed from User ID=" + id + " friends list");
+        }
     }
 
     public List<User> findUserFriends(long id) throws ValidationException {
@@ -235,13 +234,13 @@ class UserServiceTest {
         List<User> commonFriends = new ArrayList<>();
         List<Long> userFriends = new ArrayList<>(userStorage.findUserById(id).getFriends());
         List<Long> friendFriends = new ArrayList<>(userStorage.findUserById(friendId).getFriends());
-        for (Long userFriend : userFriends)  {
+        for (Long userFriend : userFriends) {
             if (friendFriends.contains(userFriend)) commonFriends.add(this.findUserById(userFriend));
         }
         return commonFriends;
     }
 
-    private void checkUsersName (User user) {
+    private void checkUsersName(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
             log.debug("NAME field initialized as " + user.getName());

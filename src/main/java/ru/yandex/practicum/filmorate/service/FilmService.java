@@ -3,8 +3,12 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.GenreDao;
+import ru.yandex.practicum.filmorate.dao.RatingDao;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.FIlmStorage;
 
 import java.util.ArrayList;
@@ -17,21 +21,25 @@ import java.util.TreeSet;
 @RequiredArgsConstructor
 public class FilmService {
     private final FIlmStorage fIlmStorage;
-    private long id = 1;
+    private final RatingDao ratingDao;
+    private final GenreDao genreDao;
 
-    public Film addFilm (Film film) {
-        film.setId(id);
-        id++;
-        if(film.getLikes() == null) film.setLikes(new TreeSet<>());
+    public Film addFilm(Film film) {
+        if (film.getLikes() == null) film.setLikes(new TreeSet<>());
         log.debug("LIKES field initialized");
-        fIlmStorage.addFilm(film);
+        if (film.getGenres() == null) film.setGenres(new TreeSet<>());
+        log.debug("GENRES field initialized");
+        film.setId(fIlmStorage.addFilm(film));
         log.debug("FILM successful added. ID=" + film.getId());
         return film;
     }
 
     public Film updateFilm(Film film) throws ValidationException {
-        if(film.getLikes() == null) film.setLikes(new TreeSet<>());
+        fIlmStorage.findFilmById(film.getId());
+        if (film.getLikes() == null) film.setLikes(new TreeSet<>());
         log.debug("LIKES field initialized");
+        if (film.getGenres() == null) film.setGenres(new TreeSet<>());
+        log.debug("GENRES field initialized");
         fIlmStorage.updateFilm(film);
         log.debug("FILM successful updated. ID=" + film.getId());
         return film;
@@ -46,16 +54,22 @@ public class FilmService {
     }
 
     public void addFilmLike(long id, long userId) throws ValidationException {
-        fIlmStorage.findFilmById(id).getLikes().add(userId);
-        log.debug("LIKE for film ID=" + id + " from User ID=" + userId + " added");
+        Film film = fIlmStorage.findFilmById(id);
+        film.getLikes().add(userId);
+        if (fIlmStorage.updateFilm(film)) {
+            log.debug("LIKE for film ID=" + id + " from User ID=" + userId + " added");
+        }
     }
 
     public void deleteFilmLike(long id, long userId) throws ValidationException {
-        fIlmStorage.findFilmById(id).getLikes().remove(userId);
-        log.debug("LIKE for film ID=" + id + " from User ID=" + userId + " deleted");
+        Film film = fIlmStorage.findFilmById(id);
+        film.getLikes().remove(userId);
+        if (fIlmStorage.updateFilm(film)) {
+            log.debug("LIKE for film ID=" + id + " from User ID=" + userId + " deleted");
+        }
     }
 
-    public List<Film> findPopularFilms (int count) {
+    public List<Film> findPopularFilms(int count) {
         List<Film> popularFilms = new ArrayList<>();
         Comparator<Film> comparator = (Film film1, Film film2) -> film2.getLikes().size() - (film1.getLikes().size());
         List<Film> sortedList = fIlmStorage.getAllFilms();
@@ -76,5 +90,23 @@ public class FilmService {
             log.debug("LIST OF POPULAR FILMS provided. Requested COUNT=" + count + ", list SIZE=" + popularFilms.size());
         }
         return popularFilms;
+    }
+
+    public List<Genre> getAllGenres() {
+        return genreDao.getAllGenres();
+    }
+
+    public Genre findGenreById(long id) throws ValidationException {
+        return genreDao.findGenreById(id).orElseThrow(() ->
+                new ValidationException("Incorrect ID=" + id + ". This genre is not in database yet"));
+    }
+
+    public List<Rating> getAllRatings() {
+        return ratingDao.getAllRatings();
+    }
+
+    public Rating findRatingById(long id) throws ValidationException {
+        return ratingDao.findRatingById(id).orElseThrow(() ->
+                new ValidationException("Incorrect ID=" + id + ". This rating is not in database yet"));
     }
 }

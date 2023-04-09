@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class ErrorHandler {
 
     @ExceptionHandler
-    @ResponseStatus (HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> cantFindByIdUserOrFilmInStorage(final ValidationException exception) {
         return Map.of("Error message", exception.getMessage());
     }
@@ -25,8 +25,8 @@ public class ErrorHandler {
     public ValidationErrorResponse handleValidationError(ConstraintViolationException e) {
         final List<Violation> violations = e.getConstraintViolations().stream()
                 .map(violation -> new Violation(
-                        violation.getPropertyPath().toString(),
-                        violation.getMessage()
+                                violation.getPropertyPath().toString(),
+                                violation.getMessage()
                         )
                 )
                 .collect(Collectors.toList());

@@ -3,11 +3,17 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
+import ru.yandex.practicum.filmorate.dao.GenreDao;
+import ru.yandex.practicum.filmorate.dao.GenreDaoImpl;
+import ru.yandex.practicum.filmorate.dao.RatingDao;
+import ru.yandex.practicum.filmorate.dao.RatingDaoImpl;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.FIlmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorageTest;
-
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -21,18 +27,21 @@ import static org.junit.jupiter.api.Assertions.*;
 @Slf4j
 class FilmServiceTest {
     private final FIlmStorage fIlmStorage = new InMemoryFilmStorageTest();
-    private long id = 1;
+    private final RatingDao ratingDao = new RatingDaoImpl(new JdbcTemplate());
+    private final GenreDao genreDao = new GenreDaoImpl(new JdbcTemplate());
     private Film film1;
-    private static Validator validator;
-        static {
-            ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-            validator = validatorFactory.usingContext().getValidator();
+    private static final Validator validator;
+
+    static {
+        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.usingContext().getValidator();
     }
 
     @BeforeEach
     void makeFilms() {
         film1 = new Film(null, "ПЕРВЫЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 60,
-                LocalDate.of(2000, 1, 1), null);
+                LocalDate.of(2000, 1, 1), null, new Rating((long) 2, "Ужасы"),
+                null);
     }
 
     @Test
@@ -95,50 +104,53 @@ class FilmServiceTest {
 
     @Test
     void addFilmIDShouldAssignedLikesInitialized() throws ValidationException {
-            this.addFilm(film1);
-            assertNotNull(this.findFilmById(1).getId());
-            assertNotNull(this.findFilmById(1).getLikes());
-            assertEquals("ПЕРВЫЙ ФИЛЬМ", this.findFilmById(1).getName(),"Название изменилось");
-            assertEquals("ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", this.findFilmById(1).getDescription(),
-                    "Описание изменилось");
-            assertEquals(60, this.findFilmById(1).getDuration(),"Продолжительность изменилось");
-            assertEquals(LocalDate.of(2000, 1, 1), this.findFilmById(1).getReleaseDate(),
-            "Дата релиза изменилась");
+        this.addFilm(film1);
+        assertNotNull(this.findFilmById(1).getId());
+        assertNotNull(this.findFilmById(1).getLikes());
+        assertEquals("ПЕРВЫЙ ФИЛЬМ", this.findFilmById(1).getName(), "Название изменилось");
+        assertEquals("ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", this.findFilmById(1).getDescription(),
+                "Описание изменилось");
+        assertEquals(60, this.findFilmById(1).getDuration(), "Продолжительность изменилось");
+        assertEquals(LocalDate.of(2000, 1, 1), this.findFilmById(1).getReleaseDate(),
+                "Дата релиза изменилась");
     }
 
     @Test
-    void updateFilmShouldUpdateAllInitializedFields () throws ValidationException {
-            Film updatedFilm = new Film((long)1, "UPDATE ВТОРОЙ ФИЛЬМ", "UPDATE ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ",
-                    120, LocalDate.of(2010, 2, 2), null);
-            addFilm(film1);
-            updateFilm(updatedFilm);
-            assertNotNull(this.findFilmById(1).getLikes());
-            assertEquals(1,this.findFilmById(1).getId(), "ID изменилось");
-            assertEquals("UPDATE ВТОРОЙ ФИЛЬМ", this.findFilmById(1).getName(),"Название не изменилось");
-            assertEquals("UPDATE ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", this.findFilmById(1).getDescription(),
+    void updateFilmShouldUpdateAllInitializedFields() throws ValidationException {
+        Film updatedFilm = new Film((long) 1, "UPDATE ВТОРОЙ ФИЛЬМ", "UPDATE ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ",
+                120, LocalDate.of(2010, 2, 2), null, new Rating((long) 1, "Ужас"),
+                null);
+        addFilm(film1);
+        updateFilm(updatedFilm);
+        assertNotNull(this.findFilmById(1).getLikes());
+        assertEquals(1, this.findFilmById(1).getId(), "ID изменилось");
+        assertEquals("UPDATE ВТОРОЙ ФИЛЬМ", this.findFilmById(1).getName(), "Название не изменилось");
+        assertEquals("UPDATE ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", this.findFilmById(1).getDescription(),
                 "Описание не изменилось");
-            assertEquals(120, this.findFilmById(1).getDuration(),"Продолжительность не изменилось");
+        assertEquals(120, this.findFilmById(1).getDuration(), "Продолжительность не изменилось");
         assertEquals(LocalDate.of(2010, 2, 2), this.findFilmById(1).getReleaseDate(),
                 "Дата релиза не изменилась");
     }
 
     @Test
-    void updateFilmShouldThrowExpDueInvalidID ()  {
-        Film updatedFilm = new Film((long)9999, "UPDATE ВТОРОЙ ФИЛЬМ", "UPDATE ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ",
-                120, LocalDate.of(2010, 2, 2), null);
+    void updateFilmShouldThrowExpDueInvalidID() {
+        Film updatedFilm = new Film((long) 9999, "UPDATE ВТОРОЙ ФИЛЬМ", "UPDATE ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ",
+                120, LocalDate.of(2010, 2, 2), null, new Rating((long) 1, "Ужас"),
+                null);
         addFilm(film1);
         assertThrows(ValidationException.class, () -> this.updateFilm(updatedFilm));
     }
 
     @Test
-    void updateFilmShouldKeepInitialized () throws ValidationException {
-            Set<Long> testSet = new TreeSet<>();
-            testSet.add((long)14);
-        Film updatedFilm = new Film((long)1, "UPDATE ВТОРОЙ ФИЛЬМ", "UPDATE ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ",
-                120, LocalDate.of(2010, 2, 2), testSet);
+    void updateFilmShouldKeepInitialized() throws ValidationException {
+        Set<Long> testSet = new TreeSet<>();
+        testSet.add((long) 14);
+        Film updatedFilm = new Film((long) 1, "UPDATE ВТОРОЙ ФИЛЬМ", "UPDATE ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ",
+                120, LocalDate.of(2010, 2, 2), testSet, new Rating((long) 1, "Ужас"),
+                null);
         addFilm(film1);
         updateFilm(updatedFilm);
-        assertEquals(testSet,this.findFilmById(1).getLikes(), "LIKES изменилось");
+        assertEquals(testSet, this.findFilmById(1).getLikes(), "LIKES изменилось");
     }
 
     @Test
@@ -159,14 +171,14 @@ class FilmServiceTest {
         likeSet2.add((long) 4);
         likeSet2.add((long) 5);
         likeSet2.add((long) 88);
-        Film film2 = new Film((long)2, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
-                LocalDate.of(2010, 2, 2), likeSet2);
-        Film film3 = new Film((long)3, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
-                LocalDate.of(2020, 3, 3), likeSet3);
-        Film film4 = new Film((long)4, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
-                LocalDate.of(2030, 4, 4), likeSet4);
-        Film film5 = new Film((long)5, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
-                LocalDate.of(2040, 5, 5), likeSet5);
+        Film film2 = new Film((long) 2, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
+                LocalDate.of(2010, 2, 2), likeSet2, null, null);
+        Film film3 = new Film((long) 3, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
+                LocalDate.of(2020, 3, 3), likeSet3, null, null);
+        Film film4 = new Film((long) 4, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
+                LocalDate.of(2030, 4, 4), likeSet4, null, null);
+        Film film5 = new Film((long) 5, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
+                LocalDate.of(2040, 5, 5), likeSet5, null, null);
         addFilm(film1);
         addFilm(film2);
         addFilm(film3);
@@ -259,26 +271,26 @@ class FilmServiceTest {
 
         likeSet2.add((long) 1);
 
-        Film film2 = new Film((long)2, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
-                LocalDate.of(2010, 2, 2), likeSet2);
-        Film film3 = new Film((long)3, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
-                LocalDate.of(2020, 3, 3), likeSet3);
-        Film film4 = new Film((long)4, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
-                LocalDate.of(2030, 4, 4), likeSet4);
-        Film film5 = new Film((long)5, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
-                LocalDate.of(2040, 5, 5), likeSet5);
-        Film film6 = new Film((long)2, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
-                LocalDate.of(2010, 6, 6), likeSet6);
-        Film film7 = new Film((long)3, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
-                LocalDate.of(2020, 7, 7), likeSet7);
-        Film film8 = new Film((long)4, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
-                LocalDate.of(2030, 8, 8), likeSet8);
-        Film film9 = new Film((long)5, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
-                LocalDate.of(2040, 9, 9), likeSet9);
-        Film film10 = new Film((long)4, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
-                LocalDate.of(2030, 10, 10), likeSet10);
-        Film film11 = new Film((long)5, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
-                LocalDate.of(2040, 11, 11), likeSet11);
+        Film film2 = new Film((long) 2, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
+                LocalDate.of(2010, 2, 2), likeSet2, null, null);
+        Film film3 = new Film((long) 3, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
+                LocalDate.of(2020, 3, 3), likeSet3, null, null);
+        Film film4 = new Film((long) 4, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
+                LocalDate.of(2030, 4, 4), likeSet4, null, null);
+        Film film5 = new Film((long) 5, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
+                LocalDate.of(2040, 5, 5), likeSet5, null, null);
+        Film film6 = new Film((long) 2, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
+                LocalDate.of(2010, 6, 6), likeSet6, null, null);
+        Film film7 = new Film((long) 3, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
+                LocalDate.of(2020, 7, 7), likeSet7, null, null);
+        Film film8 = new Film((long) 4, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
+                LocalDate.of(2030, 8, 8), likeSet8, null, null);
+        Film film9 = new Film((long) 5, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
+                LocalDate.of(2040, 9, 9), likeSet9, null, null);
+        Film film10 = new Film((long) 4, "ВТОРОЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 120,
+                LocalDate.of(2030, 10, 10), likeSet10, null, null);
+        Film film11 = new Film((long) 5, "ТРЕТИЙ ФИЛЬМ", "ОПИСАНИЕ МЕНЬШЕ 200 СИМВОЛОВ", 180,
+                LocalDate.of(2040, 11, 11), likeSet11, null, null);
 
         addFilm(film1);
         addFilm(film2);
@@ -301,19 +313,22 @@ class FilmServiceTest {
         assertEquals(expectedList, list, "Метод не работает");
     }
 
-    public Film addFilm (Film film) {
-        film.setId(id);
-        id++;
-        if(film.getLikes() == null) film.setLikes(new TreeSet<>());
+    public Film addFilm(Film film) {
+        if (film.getLikes() == null) film.setLikes(new TreeSet<>());
         log.debug("LIKES field initialized");
-        fIlmStorage.addFilm(film);
+        if (film.getGenres() == null) film.setGenres(new TreeSet<>());
+        log.debug("GENRES field initialized");
+        film.setId(fIlmStorage.addFilm(film));
         log.debug("FILM successful added. ID=" + film.getId());
         return film;
     }
 
     public Film updateFilm(Film film) throws ValidationException {
-        if(film.getLikes() == null) film.setLikes(new TreeSet<>());
+        fIlmStorage.findFilmById(film.getId());
+        if (film.getLikes() == null) film.setLikes(new TreeSet<>());
         log.debug("LIKES field initialized");
+        if (film.getGenres() == null) film.setGenres(new TreeSet<>());
+        log.debug("GENRES field initialized");
         fIlmStorage.updateFilm(film);
         log.debug("FILM successful updated. ID=" + film.getId());
         return film;
@@ -328,16 +343,22 @@ class FilmServiceTest {
     }
 
     public void addFilmLike(long id, long userId) throws ValidationException {
-        fIlmStorage.findFilmById(id).getLikes().add(userId);
-        log.debug("LIKE for film ID=" + id + " from User ID=" + userId + " added");
+        Film film = fIlmStorage.findFilmById(id);
+        film.getLikes().add(userId);
+        if (fIlmStorage.updateFilm(film)) {
+            log.debug("LIKE for film ID=" + id + " from User ID=" + userId + " added");
+        }
     }
 
     public void deleteFilmLike(long id, long userId) throws ValidationException {
+        Film film = fIlmStorage.findFilmById(id);
         fIlmStorage.findFilmById(id).getLikes().remove(userId);
-        log.debug("LIKE for film ID=" + id + " from User ID=" + userId + " deleted");
+        if (fIlmStorage.updateFilm(film)) {
+            log.debug("LIKE for film ID=" + id + " from User ID=" + userId + " deleted");
+        }
     }
 
-    public List<Film> findPopularFilms (int count) {
+    public List<Film> findPopularFilms(int count) {
         List<Film> popularFilms = new ArrayList<>();
         Comparator<Film> comparator = (Film film1, Film film2) -> film2.getLikes().size() - (film1.getLikes().size());
         List<Film> sortedList = fIlmStorage.getAllFilms();
@@ -358,5 +379,23 @@ class FilmServiceTest {
             log.debug("LIST OF POPULAR FILMS provided. Requested COUNT=" + count + ", list SIZE=" + popularFilms.size());
         }
         return popularFilms;
+    }
+
+    public List<Genre> getAllGenres() {
+        return genreDao.getAllGenres();
+    }
+
+    public Genre findGenreById(long id) throws ValidationException {
+        return genreDao.findGenreById(id).orElseThrow(() ->
+                new ValidationException("Incorrect ID=" + id + ". This genre is not in database yet"));
+    }
+
+    public List<Rating> getAllRatings() {
+        return ratingDao.getAllRatings();
+    }
+
+    public Rating findRatingById(long id) throws ValidationException {
+        return ratingDao.findRatingById(id).orElseThrow(() ->
+                new ValidationException("Incorrect ID=" + id + ". This rating is not in database yet"));
     }
 }
